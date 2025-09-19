@@ -6,7 +6,7 @@ An example would be proving you're over 18 without revealing your date of birth.
 
 ## Analogy to Explain ZKPs
 
-**The "Ali Baba Cave" Analogy (Classic):** Peggy (Prover) wants to prove to Victor (Verifier) that she knows the secret word to open a magic door in a cave. The cave has two entrances, A and B, and a magic door connecting them inside.
+**The "Ali Baba Cave" Analogy :** Peggy (Prover) wants to prove to Victor (Verifier) that she knows the secret word to open a magic door in a cave. The cave has two entrances, A and B, and a magic door connecting them inside.
 
 ### Breakdown of the Analogy
 
@@ -71,75 +71,88 @@ An example would be proving you're over 18 without revealing your date of birth.
 - The only explanation for consistent success is genuine knowledge
 
 ## KEY TERMINOLOGIES
-1. Prover: The party trying to prove knowledge of a secret without revealing it.
-2. Verifier: The party checking the validity of the proof.
-3. Claim or Statement : An assertion about some secret information. 
-- **Example**:"I know the password that unlocks this account
-4. Inputs: These are data values that the claim is about. Inputs are divided into two categories
-1. Private inputs (witness) :This is the secret informatio that the prover uses to generate the proof and must not be revealed to the verifier. A witness is only known to the prover.
-- **Example**: The actual date of birth or the actual password string.
-2. Public inputs: These are values known to both the prover and the verifier.These information defines the specific instance of the problem or the statement being proved.
--**Example**: The current date and the age threshold or the username or account ID for which the password is being verified.
-5. Constraints: These are mathematical conditions that must be satisfied for the claim to be considered true. 
--**Exmaple**: To prove someone is over a certain age ie 18;
-   private input(witness):birthdate
-   public input: current date and the age threshold ie 21
-   constraint: (current_date - birth_date) >= age_threshold
-6. Circuit: It is a comprehensive system or collection of all constraints, that when collectively satisfied,confirm the validity of the prover's overall claim.
-**structure**
-Input Wires: These channels transport both confidential (private) and openly available (public) data into the computational circuit as starting values.
-Intermediate Wires: These pathways transmit calculated values that are generated during the internal processing stages of the circuit computation.
-Output Wires: These final channels deliver the computational results, which are automatically validated against the defined constraint requirements.
-Gates: They perform operations (addition, multiplication)
--**Example**: Proving knowledge of x such that x² + 3x + 2 = 0
-Input: x (private)
-Gate 1: x² (multiplication gate)
-Gate 2: 3x (multiplication by constant)
-Gate 3: x² + 3x (addition gate)
-Gate 4: x² + 3x + 2 (addition gate)
-Output: 0 (public constraint)
+
+1. **Prover:** The party trying to prove knowledge of a secret without revealing it.
+2. **Verifier:** The party checking the validity of the proof.
+3. **Claim or Statement:** An assertion about some secret information. 
+   - **Example:** "I know the password that unlocks this account"
+4. **Inputs:** These are data values that the claim is about. Inputs are divided into two categories
+   1. **Private inputs (witness):** This is the secret information that the prover uses to generate the proof and must not be revealed to the verifier. A witness is only known to the prover.
+      - **Example:** The actual date of birth or the actual password string.
+   2. **Public inputs:** These are values known to both the prover and the verifier. These information defines the specific instance of the problem or the statement being proved.
+      - **Example:** The current date and the age threshold or the username or account ID for which the password is being verified.
+5. **Constraints:** These are mathematical conditions that must be satisfied for the claim to be considered true. 
+   - **Example:** To prove someone is over a certain age ie 18;
+     - private input(witness): birthdate
+     - public input: current date and the age threshold ie 21
+     - constraint: (current_date - birth_date) >= age_threshold
+6. **Circuit:** It is a comprehensive system or collection of all constraints, that when collectively satisfied, confirm the validity of the prover's overall claim.
+
+**Structure:**
+- **Input Wires:** These channels transport both confidential (private) and openly available (public) data into the computational circuit as starting values.
+- **Intermediate Wires:** These pathways transmit calculated values that are generated during the internal processing stages of the circuit computation.
+- **Output Wires:** These final channels deliver the computational results, which are automatically validated against the defined constraint requirements.
+- **Gates:** They perform operations (addition, multiplication)
+
+**Example:** Proving knowledge of x such that x² + 3x + 2 = 0
+- Input: x (private)
+- Gate 1: x² (multiplication gate)
+- Gate 2: 3x (multiplication by constant)
+- Gate 3: x² + 3x (addition gate)
+- Gate 4: x² + 3x + 2 (addition gate)
+- Output: 0 (public constraint)
 
 ## TYPES OF ZKPs
-ZKPs can be categorized into two main types based on the communictaion pattern between the prover and the verifier
-1. Interactive ZKPs  (IZK): They require multiple rounds of communictaion and responses between the prover and the verifier.
- **Communication Pattern**
-Multiple rounds of back-and-forth communication
-Verifier sends random challenges
-Prover responds to each challenge
-Process continues until verifier is convinced
+
+ZKPs can be categorized into two main types based on the communication pattern between the prover and the verifier
+
+1. **Interactive ZKPs (IZK):** They require multiple rounds of communication and responses between the prover and the verifier.
+
+**Communication Pattern:**
+- Multiple rounds of back-and-forth communication
+- Verifier sends random challenges
+- Prover responds to each challenge
+- Process continues until verifier is convinced
+
 An example would be the Alibaba's cave analogy.
 
-2. Non-Interactive ZKPs(NIZK): Only single message is sent to the verifier and the verifier can check the proof independently since it is public. Examples of NIZK include zkSNARKS and zkSTARKS.
-**Communication Pattern**
--Single message from prover to verifier
--No back-and-forth communication needed
--Verifier can check the proof independently
+2. **Non-Interactive ZKPs(NIZK):** Only single message is sent to the verifier and the verifier can check the proof independently since it is public. Examples of NIZK include zkSNARKS and zkSTARKS.
+
+**Communication Pattern:**
+- Single message from prover to verifier
+- No back-and-forth communication needed
+- Verifier can check the proof independently
 
 ### Advantages of IZK
--Often simpler to design and analyze
--Can achieve perfect zero-knowledge
--Don't require trusted setup in many cases
--More flexible for complex statements
+
+- Often simpler to design and analyze
+- Can achieve perfect zero-knowledge
+- Don't require trusted setup in many cases
+- More flexible for complex statements
 
 ### Disadvantages of IZK
--Require synchronous communication
--Not suitable for blockchain or asynchronous environments
--Verifier must be online and actively participating
--Multiple rounds increase latency
+
+- Require synchronous communication
+- Not suitable for blockchain or asynchronous environments
+- Verifier must be online and actively participating
+- Multiple rounds increase latency
 
 ### Advantages of NIZK
--Single proof can be verified by anyone, anytime
--Perfect for blockchain and distributed systems
--Can be stored and verified later
--Enable scalable verification
+
+- Single proof can be verified by anyone, anytime
+- Perfect for blockchain and distributed systems
+- Can be stored and verified later
+- Enable scalable verification
 
 ### Disadvantages of NIZK
--Often require stronger assumptions (like trusted setup)
--More complex cryptographic constructions
--May have larger proof sizes or slower proving times
--Harder to achieve perfect zero-knowledge 
+
+- Often require stronger assumptions (like trusted setup)
+- More complex cryptographic constructions
+- May have larger proof sizes or slower proving times
+- Harder to achieve perfect zero-knowledge 
 
 ## Use Cases of ZKPs
+
 **Zero-Knowledge Proofs Use Cases**
 
 **Blockchain Applications:**
@@ -169,6 +182,3 @@ An example would be the Alibaba's cave analogy.
 • **Compliance and Auditing** - Demonstrate regulatory compliance without exposing sensitive operational details
 
 • **Machine Learning (zkML)** - Prove correct model execution or properties without revealing model weights or input data
-
-
-
