@@ -182,3 +182,13 @@ An example would be the Alibaba's cave analogy.
 • **Compliance and Auditing** - Demonstrate regulatory compliance without exposing sensitive operational details
 
 • **Machine Learning (zkML)** - Prove correct model execution or properties without revealing model weights or input data
+
+
+## Key Features of ZKPs
+
+**Completeness** - If a statement is true, an honest prover can convince an honest verifier with high probability
+
+**Soundness** - If a statement is false, no malicious prover can convince an honest verifier except with negligible probability
+
+**Zero-knowledge** - The verifier learns nothing about the secret beyond the validity of the statement being proven
+
