@@ -18,4 +18,28 @@ fn main(x : Field, y : pub Field) -> pub Field {
 
 In this case x is private and y is public.
 
-### primitive types
+### primitive data types
+#### Field
+The field type corresponds to the native field tye of the proving backend. They are fundamental blocks to ZK circuits.
+The size of a Noir field depends on the elliptic curve's finite field for the proving backend adopted. For example, a field would be a 254-bit integer when paired with the default backend that spans the Grumpkin curve.
+
+
+#### Example
+fn main(x : Field, y : Field)  {
+    let z = x + y;
+}
+
+x, y and z are all private fields in this example. Using the let keyword we defined a new private value z constrained to be equal to x + y.
+
+If proving efficiency is of priority, fields should be used as a default for solving problems. Smaller integer types (e.g. u64) incur extra range constraints.
+
+#### Integers
+An integer type is a range constrained field type.
+An integer type is a range constrained field type. The Noir frontend supports both unsigned and signed integer types. The allowed sizes are 1, 8, 16, 32, 64 and 128 bits. (currently only unsigned integers for 128 bits)
+
+#### info
+When an integer is defined in Noir without a specific type, it will default to Field unless another type is expected at its position.
+
+The one exception is for loop indices which default to u32 since comparisons on Fields are not possible.
+
+You can add a type suffix such as u32 or Field to the end of an integer literal to explicitly specify the type.

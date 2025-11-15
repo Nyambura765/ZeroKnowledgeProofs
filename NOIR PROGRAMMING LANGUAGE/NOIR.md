@@ -1,41 +1,54 @@
-## NOIR PROGRAMMING LANGUAGE
-Noir is a language for private and verifiable computing. It is a domain-specific programming language used in privacy-preserving 
-zero-knowledge systems, requiring no underlying knowledge on mathematics and cryptograhy concepts. 
+# Noir Programming Language
 
-## Architecture flow
-1. ###  Developer layer ( Noir CLI , Noir programming language)
-Write Zk circuits using rust-like syntax.
-Private inputs by default.
-Support for structs, arrays and tuples.
-Standardized libraries of optimized functions.
+Noir is a domain-specific language for private and verifiable computing in zero-knowledge systems. It enables developers to write ZK circuits without requiring deep knowledge of mathematics or cryptography concepts.
 
-2. ### Compilation Layer (Noir compiler, ACIR generator)
-Compile to ACIR intermediate representation.
+## Architecture Flow
 
-3. ### Proving Backend (Barrenteng)
-Convert ACIR to specific proving systems.
+### 1. Developer Layer
+**Components:** Noir CLI, Noir Programming Language
 
-4. ### Proof Generation (prover, witness)
-Generate Zero-knowledge proofs.
+- Write ZK circuits using Rust-like syntax
+- Private inputs by default
+- Support for structs, arrays, and tuples
+- Standardized libraries of optimized functions
 
-5. ### Verification layer (solidity verifier, Nargo verify)
-Verify proofs on-chain and off-chain.
+### 2. Compilation Layer
+**Components:** Noir Compiler, ACIR Generator
 
+- Compiles Noir code to ACIR (Abstract Circuit Intermediate Representation)
+- Platform-agnostic intermediate format (similar to LLVM)
 
-#### Key Components:
+### 3. Proving Backend
+**Components:** Barretenberg
 
-Developer Layer - Where you write ZK circuits using Rust-like syntax, with private inputs by default.
-Compilation Layer - Compiles your code to ACIR (Abstract Circuit Intermediate Representation), which is platform-agnostic similar to LLVM.
-Proving Backend - Compatible with multiple proving systems including PLONK, Groth16, and Marlin Medium.
-Proof Generation - Creates zero-knowledge proofs that can even run in browsers using JavaScript wrappers. 
-Verification Layer - Can generate Solidity verifier contracts deployable on EVM-compatible blockchains .
+- Converts ACIR to specific proving systems
+- Compatible with multiple proving systems including PLONK, Groth16, and Marlin
 
-## ZK Architechture
+### 4. Proof Generation
+**Components:** Prover, Witness
 
-<img width="771" height="596" alt="Image" src="https://github.com/user-attachments/assets/7c98db23-527f-46d3-aa61-6d3555098e5b" />
+- Generates zero-knowledge proofs
+- Can run in browsers using JavaScript wrappers
 
+### 5. Verification Layer
+**Components:** Solidity Verifier, Nargo Verify
 
-### Installation
+- Verifies proofs on-chain and off-chain
+- Generates Solidity verifier contracts deployable on EVM-compatible blockchains
 
+## ZK Architecture
 
+<img width="771" height="596" alt="Noir ZK Architecture Diagram" src="https://github.com/user-attachments/assets/7c98db23-527f-46d3-aa61-6d3555098e5b" />
 
+## Key Features
+
+- **Rust-like Syntax:** Familiar syntax for developers with Rust experience
+- **Privacy by Default:** All inputs are private unless explicitly marked public
+- **Type Safety:** Strong typing with support for complex data structures
+- **Backend Agnostic:** ACIR allows compatibility with multiple proving systems
+- **Browser Compatible:** Proofs can be generated client-side
+- **Blockchain Integration:** Built-in support for EVM verification contracts
+
+## Installation
+
+[Installation instructions to be added]
