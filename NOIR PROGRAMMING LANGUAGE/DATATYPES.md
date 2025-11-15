@@ -39,7 +39,6 @@ An integer type is a range constrained field type. The Noir frontend supports bo
 
 #### info
 When an integer is defined in Noir without a specific type, it will default to Field unless another type is expected at its position.
-
 The one exception is for loop indices which default to u32 since comparisons on Fields are not possible.
-
 You can add a type suffix such as u32 or Field to the end of an integer literal to explicitly specify the type.
+
