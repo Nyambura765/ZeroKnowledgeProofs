@@ -1,10 +1,25 @@
-# Noir Programming Language
+# Noir Programming Language Documentation
+
+## Overview
 
 Noir is a domain-specific language for private and verifiable computing in zero-knowledge systems. It enables developers to write ZK circuits without requiring deep knowledge of mathematics or cryptography concepts.
 
-## Architecture Flow
+---
 
-### 1. Developer Layer
+## Table of Contents
+
+1. [Architecture Overview](#architecture-overview)
+2. [Understanding the Noir Toolchain](#understanding-the-noir-toolchain)
+3. [ZK Protocol Architecture](#zk-protocol-architecture)
+4. [Installation Guide](#installation-guide)
+5. [Getting Started](#getting-started)
+6. [Project Structure](#project-structure)
+
+---
+
+## Architecture Overview
+
+### Developer Layer
 **Components:** Noir CLI, Noir Programming Language
 
 - Write ZK circuits using Rust-like syntax
@@ -12,33 +27,462 @@ Noir is a domain-specific language for private and verifiable computing in zero-
 - Support for structs, arrays, and tuples
 - Standardized libraries of optimized functions
 
-### 2. Compilation Layer
+### Compilation Layer
 **Components:** Noir Compiler, ACIR Generator
 
 - Compiles Noir code to ACIR (Abstract Circuit Intermediate Representation)
 - Platform-agnostic intermediate format (similar to LLVM)
 
-### 3. Proving Backend
+### Proving Backend
 **Components:** Barretenberg
 
 - Converts ACIR to specific proving systems
 - Compatible with multiple proving systems including PLONK, Groth16, and Marlin
 
-### 4. Proof Generation
+### Proof Generation
 **Components:** Prover, Witness
 
 - Generates zero-knowledge proofs
 - Can run in browsers using JavaScript wrappers
 
-### 5. Verification Layer
+### Verification Layer
 **Components:** Solidity Verifier, Nargo Verify
 
 - Verifies proofs on-chain and off-chain
 - Generates Solidity verifier contracts deployable on EVM-compatible blockchains
 
-## ZK Architecture
+---
 
-<img width="771" height="596" alt="Noir ZK Architecture Diagram" src="https://github.com/user-attachments/assets/7c98db23-527f-46d3-aa61-6d3555098e5b" />
+## Understanding the Noir Toolchain
+
+### Nargo: Your Noir Command Center
+
+Nargo is the primary Command Line Interface (CLI) tool and project management framework for Noir. Think of Nargo as the equivalent of `forge` in the Foundry ecosystem for Solidity or `cargo` for Rust projects.
+
+#### Core Functionality
+
+Nargo orchestrates several key developer-side tasks:
+
+1. **Compiling Noir circuits:** Translating human-readable Noir code into a format understood by a proving backend
+2. **Executing Noir circuits:** Running the circuit logic with specific inputs to generate a witness
+3. **Checking circuit logic:** Performing syntax and type checks
+
+#### The Nargo Workflow
+
+##### 1. Writing Circuits
+
+Circuits are files where you define the logic of your ZK program using the Noir language. This logic represents the computation for which you want to generate a proof of correct execution without revealing all underlying data.
+
+**Example:** A simple circuit might verify if a given input `x` (e.g., an age) is greater than or equal to 18.
+
+##### 2. The `nargo compile` Command
+
+- **Input:** Your `.nr` circuit files
+- **Output:** ACIR (Abstract Circuit Intermediate Representation)
+
+**What is ACIR?** ACIR is a crucial, standardized intermediate format that acts as a bridge, decoupling the Noir frontend (the language and compiler) from the proving backend. This abstraction means that any proving backend capable of understanding ACIR can be used with Noir.
+
+##### 3. The `nargo execute` Command
+
+- **Process:** Internally compiles the circuits to ACIR if this hasn't been done already, then runs the circuit logic with the provided inputs
+- **Output:** A Witness
+
+**What is a Witness?** The witness is a complete set of all intermediate values and assignments that satisfy the circuit's constraints for the given inputs. It's essentially the "execution trace" of the computation.
+
+##### 4. The `nargo check` Command
+
+This command is useful for quickly verifying the logical soundness of your circuits, such as checking for syntax errors or type mismatches, without proceeding to full compilation or execution.
+
+#### When to Use compile vs. execute
+
+- **`nargo compile`:** Use when you primarily need the ACIR. Useful if you intend to generate a verifier contract or if private inputs will be supplied later
+- **`nargo execute`:** Use when you have the necessary inputs and your goal is to generate a witness. This command conveniently handles both compilation (to ACIR) and witness generation
+
+---
+
+### Barretenberg (bb): The Proving Backend
+
+Barretenberg is a C++ library and CLI tool developed by Aztec, the same team behind Noir. It's designed to consume ACIR and perform the complex cryptographic operations required for ZK proofs.
+
+#### Barretenberg's Role
+
+##### 1. Proof Generation
+
+- **Inputs:**
+  - ACIR: The Abstract Circuit Intermediate Representation generated by Nargo
+  - Witness: The execution trace generated by Nargo's execute command for specific inputs
+- **Process:** Barretenberg performs the necessary cryptographic operations (e.g., using PLONK or other ZK-SNARK constructions)
+- **Output:** A ZK Proof
+
+**What is a Proof?** The proof is a compact piece of data that cryptographically attests that a specific computation was performed correctly with certain private inputs, without revealing those private inputs.
+
+##### 2. Proof Verification
+
+###### a. Off-Chain Verification
+
+- **Using Barretenberg CLI:** The `bb` command-line tool can directly verify a proof against the ACIR and public inputs
+- **Using Barretenberg JavaScript Package:** For integration into Node.js scripts, web frontends, or other off-chain applications
+
+###### b. On-Chain Verification
+
+1. **Generate Verifier Smart Contract:** Barretenberg can generate a Solidity smart contract specifically tailored to verify proofs for that particular circuit
+2. **Deploy Verifier Contract:** Deploy the generated Verifier Contract to the target blockchain
+3. **Call the Verify Function:** The deployed contract exposes a `verify` function that accepts:
+   - The proof (as bytes)
+   - The publicInputs (as bytes)
+4. **Output:** The verify function returns:
+   - `true`: Indicates the proof is valid
+   - `false`: Indicates the proof is invalid
+
+---
+
+## ZK Protocol Architecture
+
+Zero-Knowledge protocols allow a user to prove the truth of a statement to an on-chain smart contract without revealing the underlying private information. The architecture is divided into two realms: **on-chain** and **off-chain** components.
+
+### Off-Chain Components
+
+#### Circuits – Defining the Rules
+
+Circuits are the heart of the ZK proof system, operating entirely off-chain.
+
+- **Definition:** A programmatic representation of the mathematical rules and constraints that specific inputs must satisfy
+- **Inputs:**
+  - **Public Inputs:** Data known to everyone and visible on-chain
+  - **Private Inputs:** Sensitive data kept confidential but used to prove the statement
+- **Outputs:** The cryptographic proof itself, plus the compiled circuit bytecode used to generate the Verifier Smart Contract
+
+#### Front-end or CLI – User Interaction and Proof Generation
+
+This is the user's gateway to interacting with the ZK protocol.
+
+**Key Actions:**
+1. **Input Creation:** Gathers public and private inputs required by the ZK circuit
+2. **Circuit Execution (Witness Generation):** Feeds inputs into the compiled circuit
+3. **ZK Proof Creation:** Uses a backend proving system (like Barretenberg) to generate the cryptographic ZK proof
+4. **Optional Off-chain Verification:** Preliminary check before submitting on-chain
+
+**Tools:**
+- **Circom:** CircomJS for JavaScript integration
+- **Noir:** Noir.js for front-end integration and Nargo CLI tool
+
+### On-Chain Components
+
+#### App Smart Contract
+
+The App Smart Contract embodies the main logic of your decentralized application.
+
+- **Purpose:** Contains the business logic of your protocol (e.g., DeFi protocol, confidential voting system, private token transfer)
+- **Interaction:** Receives ZK proofs from users and orchestrates the verification process
+- **Example Function:** `withdraw(bytes memory proof)` or `verifyAndExecute(bytes memory proof, uint256 publicAmount)`
+
+#### Verifier Smart Contract
+
+This specialized contract has a singular, vital role in the architecture.
+
+- **Generation:** Auto-generated directly from the compiled ZK circuit bytecode
+- **Purpose:** Takes a submitted ZK proof and associated public inputs, executes the verification algorithm
+- **Interaction:** Called by the App Smart Contract to validate proofs
+- **Function:** Commonly named `verify`, returns boolean indicating proof validity
+
+### End-to-End Workflow
+
+1. **User Interacts with App:** User provides private and public inputs through front-end/CLI
+2. **Proof Creation Off-chain:** Front-end/CLI generates cryptographic ZK proof using compiled circuit
+3. **Proof Generated:** Output is a compact piece of data (often hex or bytes)
+4. **App Calls Smart Contract:** Transaction sent to App Smart Contract with proof as argument
+5. **Call to Verifier:** App Smart Contract calls Verifier Smart Contract's `verify` function
+6. **Returns True, App Continues:** If valid, App Smart Contract proceeds with intended logic; if invalid, action is blocked
+
+---
+
+## Installation Guide
+
+### Prerequisites
+
+- Terminal/Command line access
+- Internet connection
+
+### Installing Nargo
+
+#### 1. Install noirup
+
+```bash
+curl -L https://raw.githubusercontent.com/noir-lang/noirup/refs/heads/main/install | bash
+```
+
+#### 2. Update Your Shell Configuration
+
+For Zsh:
+```bash
+source ~/.zshrc
+```
+
+For Bash:
+```bash
+source ~/.bashrc
+# or
+source ~/.bash_profile
+```
+
+#### 3. Install Nargo
+
+```bash
+noirup
+```
+
+#### 4. Verify Installation
+
+```bash
+nargo --version
+```
+
+Expected output:
+```
+nargo version = 1.0.0-beta.3
+noirc version = 1.0.0-beta.3+ceea1986628197bd117d147f6a07f98d21030a
+```
+
+#### 5. Explore Commands
+
+```bash
+nargo --help
+```
+
+**Key Commands:**
+- `check` - Checks a local package and its dependencies for correctness
+- `fmt` / `format` - Formats Noir source files
+- `compile` - Compiles your Noir program
+- `new` - Creates a new Noir project in a new directory
+- `init` - Creates a new Noir project in the current directory
+- `execute` - Executes a circuit to calculate its return value
+- `debug` - Executes a circuit in debug mode
+- `test` - Runs tests defined for your program
+
+### Installing Barretenberg
+
+#### 1. Install bbup
+
+```bash
+curl -L https://raw.githubusercontent.com/AztecProtocol/aztec-packages/refs/heads/master/barretenberg/bbup/install | bash
+```
+
+This script automatically queries your installed Nargo version and downloads a compatible version of Barretenberg.
+
+#### 2. Update Shell Configuration
+
+```bash
+source ~/.zshrc
+# or for Bash
+source ~/.bashrc
+```
+
+#### 3. Verify Installation
+
+```bash
+bb --version
+```
+
+Expected output:
+```
+v0.82.2
+```
+
+#### 4. Explore Commands
+
+```bash
+bb --help
+```
+
+**Key Subcommands:**
+- `check` - Debugging tool for witness satisfaction
+- `gates` - Constructs circuit and returns gate count
+- `prove` - Generates a proof for a given circuit and witness
+- `write_vk` - Writes the verification key to a file
+- `verify` - Verifies a proof off-chain
+- `write_solidity_verifier` - Generates a Solidity verifier contract
+
+### Installing jq (Dependency)
+
+Barretenberg requires `jq`, a command-line JSON processor.
+
+#### macOS (using Homebrew)
+
+1. Install Homebrew (if not installed):
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+2. Install jq:
+```bash
+brew install jq
+```
+
+For other operating systems, visit [jqlang.org/download](https://jqlang.org/download/).
+
+---
+
+## Getting Started
+
+### Creating Your First Project
+
+#### Understanding `nargo init` vs. `nargo new`
+
+- **`nargo init`:** Initializes a new Noir project in your current working directory
+- **`nargo new <project_name>`:** Creates a new directory and initializes a project within it (recommended)
+
+#### Create a New Project
+
+```bash
+nargo new simple_circuit
+```
+
+Output:
+```
+Project successfully created! It is located at /path/to/simple_circuit
+```
+
+#### Verify Creation
+
+```bash
+ls
+```
+
+You should see `simple_circuit` in the directory listing.
+
+#### Navigate to Project
+
+```bash
+cd simple_circuit
+```
+
+#### Inspect Project Structure
+
+```bash
+ls
+```
+
+Output:
+```
+Nargo.toml
+src
+```
+
+### Opening in VS Code
+
+```bash
+code ./
+```
+
+### Recommended VS Code Extension
+
+Install the **"Noir Language Support"** extension by noir-lang for:
+- Syntax highlighting
+- Compile errors and warnings
+- Test execution via Codelens
+- Useful snippets
+- Auto-format on save
+
+---
+
+## Project Structure
+
+### The `Nargo.toml` Configuration File
+
+The `Nargo.toml` file is central to managing your Noir project, similar to `foundry.toml` for Solidity or `Cargo.toml` for Rust.
+
+#### The `[package]` Section
+
+```toml
+[package]
+name = "simple_circuit"
+type = "bin"
+authors = ["Your Name"]
+```
+
+**Key Fields:**
+- **`name`:** Package name
+- **`type`:** Crate type (`"bin"`, `"lib"`, or `"contract"`)
+- **`authors`:** Array of package authors
+
+**Crate Types:**
+- **`"bin"`** (binary): Executable programs that compile to ACIR circuits (most common)
+- **`"lib"`** (library): Reusable Noir code for sharing across projects
+- **`"contract"`**: Smart contracts for deployment on networks like Aztec
+
+#### The `[dependencies]` Section
+
+Declare external libraries (crates) here.
+
+Example:
+```toml
+[dependencies]
+ecrecover = { tag = "v0.8.0", git = "https://github.com/colinnielsen/ecrecover-noir" }
+```
+
+For projects without dependencies:
+```toml
+[dependencies]
+# Dependencies will be listed here
+```
+
+### The `src` Directory
+
+The `src` directory contains your actual Noir circuit logic. For binary crates, the main entry point is `src/main.nr`.
+
+#### Example `main.nr`
+
+```noir
+fn main(x: Field, y: pub Field) {
+    assert(x != y);
+}
+
+#[test]
+fn test_main() {
+    main(x: 1, y: 2);
+    
+    // Uncomment to see the test fail
+    // main(1, 1);
+}
+```
+
+**Breakdown:**
+- **`fn main(x: Field, y: pub Field)`:** Declares the main function
+  - `x: Field` - Private input (known to prover only)
+  - `y: pub Field` - Public input (known to both prover and verifier)
+- **`assert(x != y)`:** Constraint that x must not equal y
+- **`#[test]`:** Test function annotation
+- **`main(x: 1, y: 2)`:** Test case that passes (1 ≠ 2)
+
+### Noir Crate Types Explained
+
+#### Binary Crates (`bin`)
+- Compiled into ACIR
+- Must contain a `main` function in `src/main.nr`
+- Used for building ZK circuits
+- Primary focus for most developers
+
+#### Library Crates (`lib`)
+- Collections of reusable Noir code
+- No `main` function
+- Do not compile directly to ACIR
+- Provide functionality for other crates
+
+#### Contract Crates (`contract`)
+- Specialized for smart contracts on Aztec Network
+- Compile to ACIR
+- Collection of functions instead of single `main`
+- Advanced topic (not covered in basic tutorials)
+
+### Organizing Code with Modules
+
+As projects grow, use Noir's module system (similar to Rust's):
+- Group related functionality into separate `.nr` files
+- Control visibility and scope of items
+- Improve maintainability and readability
+- Import modules into `main` function file
+
+---
 
 ## Key Features
 
@@ -49,6 +493,16 @@ Noir is a domain-specific language for private and verifiable computing in zero-
 - **Browser Compatible:** Proofs can be generated client-side
 - **Blockchain Integration:** Built-in support for EVM verification contracts
 
-## Installation
+---
 
-[Installation instructions to be added]
+## Summary: Key Takeaways
+
+1. **Noir Language:** Used to write circuits defining your ZK computation
+2. **Nargo (CLI):** Primary tool for compiling circuits into ACIR and executing them to produce a Witness
+3. **ACIR:** Intermediate representation that decouples Noir frontend from ZK proving backends
+4. **Witness:** Set of all values satisfying circuit constraints for specific inputs
+5. **Barretenberg (bb):** Proving backend that generates ZK proofs from ACIR and Witness
+6. **ZK Proof:** Cryptographic evidence of correct computation enabling verification without revealing private data
+7. **Verifier Contract:** On-chain smart contract for trustless validation in decentralized applications
+
+This architecture allows developers to focus on writing circuit logic in Noir while Nargo and Barretenberg handle the complex steps of compilation, witness generation, proof creation, and verification—both off-chain for rapid iteration and on-chain for decentralized trust.
